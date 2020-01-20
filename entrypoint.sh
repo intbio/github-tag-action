@@ -9,50 +9,52 @@ source=${SOURCE:-.}
 
 cd ${GITHUB_WORKSPACE}/${source}
 
-pre_release="true"
-IFS=',' read -ra branch <<< "$release_branches"
-for b in "${branch[@]}"; do
-    echo "Is $b a match for ${GITHUB_REF#'refs/heads/'}"
-    if [[ "${GITHUB_REF#'refs/heads/'}" =~ $b ]]
-    then
-        pre_release="false"
-    fi
-done
-echo "pre_release = $pre_release"
+#pre_release="true"
+#IFS=',' read -ra branch <<< "$release_branches"
+#for b in "${branch[@]}"; do
+#    echo "Is $b a match for ${GITHUB_REF#'refs/heads/'}"
+##   if [[ "${GITHUB_REF#'refs/heads/'}" =~ $b ]]
+#    then
+#        pre_release="false"
+#    fi
+#done
+#echo "pre_release = $pre_release"
 
 # fetch tags
-git fetch --tags
+#git fetch --tags
 
 # get latest tag
-tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-tag_commit=$(git rev-list -n 1 $tag)
+#tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+#tag_commit=$(git rev-list -n 1 $tag)
 
 # get current commit hash for tag
 commit=$(git rev-parse HEAD)
 
-if [ "$tag_commit" == "$commit" ]; then
-    echo "No new commits since previous tag. Skipping..."
-    echo ::set-output name=tag::$tag
-    exit 0
-fi
+#if [ "$tag_commit" == "$commit" ]; then
+#    echo "No new commits since previous tag. Skipping..."
+#    echo ::set-output name=tag::$tag
+#    exit 0
+#fi
 
 # if there are none, start tags at 0.0.0
-if [ -z "$tag" ]
-then
-    log=$(git log --pretty=oneline)
-    tag=0.0.0
-else
-    log=$(git log $tag..HEAD --pretty=oneline)
-fi
+#if [ -z "$tag" ]
+#then
+#    log=$(git log --pretty=oneline)
+#    tag=0.0.0
+#else
+#    log=$(git log $tag..HEAD --pretty=oneline)
+#fi
 
 # get commit logs and determine home to bump the version
 # supports #major, #minor, #patch (anything else will be 'minor')
-case "$log" in
-    *#major* ) new=$(semver bump major $tag);;
-    *#minor* ) new=$(semver bump minor $tag);;
-    *#patch* ) new=$(semver bump patch $tag);;
-    * ) new=$(semver bump `echo $default_semvar_bump` $tag);;
-esac
+#case "$log" in
+#    *#major* ) new=$(semver bump major $tag);;
+#    *#minor* ) new=$(semver bump minor $tag);;
+#    *#patch* ) new=$(semver bump patch $tag);;
+#    * ) new=$(semver bump `echo $default_semvar_bump` $tag);;
+#esac
+
+new=`cat VERSION`
 
 # prefix with 'v'
 if $with_v
@@ -60,15 +62,15 @@ then
     new="v$new"
 fi
 
-if $pre_release
-then
-    new="$new-${commit:0:7}"
-fi
+#if $pre_release
+#then
+#    new="$new-${commit:0:7}"
+#fi
 
-if [ ! -z $custom_tag ]
-then
-    new="$custom_tag"
-fi
+#if [ ! -z $custom_tag ]
+#then
+#    new="$custom_tag"
+#fi
 
 echo $new
 
@@ -76,11 +78,11 @@ echo $new
 echo ::set-output name=new_tag::$new
 echo ::set-output name=tag::$new
 
-if $pre_release
-then
-    echo "This branch is not a release branch. Skipping the tag creation."
-    exit 0
-fi
+#if $pre_release
+#then
+#    echo "This branch is not a release branch. Skipping the tag creation."
+#    exit 0
+#fi
 
 # push new tag ref to github
 dt=$(date '+%Y-%m-%dT%H:%M:%SZ')
